@@ -10,19 +10,56 @@ import qs.Core.Windows
 Card {
     id: root
 
-    property string powerProfile: SystemInfoService.powerProfile
-    property var profilesList: {
-        let m = ["power-saver", "balanced"];
-        if (SystemInfoService.hasPerformanceProfile)
-            m.push("performance");
-
-        return m;
-    }
+    property string activeProfile: ""
+    property var profilesList: ["balanced"]
 
     cardRadius: Constants.sizeSm
     useBorder: false
     backgroundColor: Theme.bgSecondary
     contentPadding: Constants.sizeLg
+
+    Process {
+        id: fetchProfileProcess
+        command: ["python3", "-c", "import socket, json\ns = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)\ntry:\n    s.connect('/var/run/DAMX.sock')\n    s.sendall(json.dumps({'command': 'get_thermal_profile'}).encode())\n    res = s.recv(4096)\n    print(res.decode())\nexcept Exception as e:\n    print(json.dumps({'success': False, 'error': str(e)}))\nfinally:\n    s.close()"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    let response = JSON.parse(data.trim());
+                    if (response.success && response.data) {
+                        root.activeProfile = response.data.current;
+                        if (response.data.available && response.data.available.length > 0) {
+                            root.profilesList = response.data.available;
+                        }
+                    }
+                } catch (e) {
+                    console.log("Gagal mem-parsing balasan socket:", e);
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 5000
+        running: true
+        repeat: true
+        onTriggered: {
+            fetchProfileProcess.running = true;
+        }
+    }
+
+    Process {
+        id: setProfileProcess
+        property string targetProfile: ""
+        command: ["python3", "-c", "import socket, json\ns = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)\ntry:\n    s.connect('/var/run/DAMX.sock')\n    payload = {'command': 'set_thermal_profile', 'params': {'profile': '" + targetProfile + "'}}\n    s.sendall(json.dumps(payload).encode())\n    res = s.recv(4096)\n    print(res.decode())\nexcept Exception as e:\n    print(json.dumps({'success': False, 'error': str(e)}))\nfinally:\n    s.close()"]
+        onExited: (exitCode) => {
+            if (exitCode === 0) {
+                fetchProfileProcess.running = true;
+            } else {
+                console.log("Gagal mengirim perintah set_thermal_profile ke socket.");
+            }
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -32,50 +69,35 @@ Card {
             id: profileSelect
 
             label: "Performance Mode"
-            comboWidth: 140
-            description: {
-                let p = root.powerProfile;
-                if (p === "power-saver")
-                    return "Limits CPU and saves battery";
-
-                if (p === "balanced")
-                    return "Standard balanced profile";
-
-                if (p === "performance")
-                    return "Maximum system performance";
-
-                return "";
-            }
+            comboWidth: 160
             model: root.profilesList
+            
             Component.onCompleted: {
+                updateSelectedIndex();
+            }
+
+            onActivated: (index) => {
+                let selected = root.profilesList[index];
+                setProfileProcess.targetProfile = selected;
+                setProfileProcess.running = true;
+            }
+
+            Connections {
+                target: root
+                function onActiveProfileChanged() {
+                    profileSelect.updateSelectedIndex();
+                }
+            }
+            
+            function updateSelectedIndex() {
                 for (let i = 0; i < root.profilesList.length; i++) {
-                    if (root.profilesList[i] === SystemInfoService.powerProfile) {
+                    if (root.profilesList[i] === root.activeProfile) {
                         profileSelect.currentIndex = i;
-                        return ;
+                        return;
                     }
                 }
                 profileSelect.currentIndex = 0;
             }
-            onActivated: (index) => {
-                SystemInfoService.applyProfile(root.profilesList[index]);
-            }
-
-            Connections {
-                function onPowerProfileChanged() {
-                    for (let i = 0; i < root.profilesList.length; i++) {
-                        if (root.profilesList[i] === SystemInfoService.powerProfile) {
-                            profileSelect.currentIndex = i;
-                            return ;
-                        }
-                    }
-                    profileSelect.currentIndex = 0;
-                }
-
-                target: SystemInfoService
-            }
-
         }
-
     }
-
 }
