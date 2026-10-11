@@ -27,7 +27,7 @@ Item {
         "id": "logout",
         "label": "Logout",
         "icon": "logout",
-        "command": ["hyprctl", "dispatch", "exit"],
+        "command": ["sh", "-c", "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else hyprctl dispatch exit || loginctl terminate-user \"\"; fi"],
         "confirm": true
     }, {
         "id": "reboot",
@@ -55,6 +55,7 @@ Item {
         else if (root.widget && root.widget.isOpen !== undefined)
             root.widget.isOpen = false;
         AppState.activeWidget = "";
+        root.pendingActionIndex = -1;
     }
 
     function runAction(index) {
