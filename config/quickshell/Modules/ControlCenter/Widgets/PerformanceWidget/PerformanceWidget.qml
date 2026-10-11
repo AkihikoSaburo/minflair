@@ -11,7 +11,7 @@ Card {
     id: root
 
     property string activeProfile: ""
-    property var profilesList: ["balanced"]
+    property var profilesList: []
 
     cardRadius: Constants.sizeSm
     useBorder: false
@@ -27,10 +27,10 @@ Card {
                 try {
                     let response = JSON.parse(data.trim());
                     if (response.success && response.data) {
-                        root.activeProfile = response.data.current;
                         if (response.data.available && response.data.available.length > 0) {
                             root.profilesList = response.data.available;
                         }
+                        root.activeProfile = response.data.current;
                     }
                 } catch (e) {
                     console.log("Gagal mem-parsing balasan socket:", e);
@@ -72,24 +72,26 @@ Card {
             comboWidth: 160
             model: root.profilesList
             
-            Component.onCompleted: {
-                updateSelectedIndex();
-            }
-
             onActivated: (index) => {
                 let selected = root.profilesList[index];
-                setProfileProcess.targetProfile = selected;
-                setProfileProcess.running = true;
+                if (selected && selected !== root.activeProfile) {
+                    setProfileProcess.targetProfile = selected;
+                    setProfileProcess.running = true;
+                }
             }
 
             Connections {
                 target: root
+                function onProfilesListChanged() {
+                    profileSelect.updateSelectedIndex();
+                }
                 function onActiveProfileChanged() {
                     profileSelect.updateSelectedIndex();
                 }
             }
             
             function updateSelectedIndex() {
+                if (!root.profilesList || root.profilesList.length === 0) return;
                 for (let i = 0; i < root.profilesList.length; i++) {
                     if (root.profilesList[i] === root.activeProfile) {
                         profileSelect.currentIndex = i;

@@ -1,27 +1,23 @@
 local mainMod = "SUPER"
 local terminal = "kitty"
-local fileManager = "nautilus"
+local fileManager = "nemo"
+local browser = "zen-browser"
 
 -- ## Applications
 
 -- # Open Terminal
-hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(terminal))
 -- # Open Floating Terminal
-hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty --class kitty-floating"))
+-- hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty --class kitty-floating"))
 -- # Open File Manager
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 -- # Open Browser
-hl.bind(
-	mainMod .. " + B",
-	hl.dsp.exec_cmd(
-		"if command -v brave; then brave; elif command -v firefox; then firefox; elif command -v chromium; then chromium; else google-chrome-stable; fi"
-	)
-)
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 
 -- ## Window Management
 
 -- # Close Active Window
-hl.bind(mainMod .. " + Q", hl.dsp.window.close())
+hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
 -- # Exit Hyprland
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exit())
 -- # Lock Screen
@@ -50,9 +46,9 @@ hl.bind(mainMod .. " + SHIFT + N", hl.dsp.workspace.toggle_special("minimized"))
 -- # Pick Color
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 -- # Switch Keyboard Layout
-hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("$HOME/.config/quickshell/Scripts/system/toggle_kb_layout.sh"))
+-- hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("$HOME/.config/quickshell/Scripts/system/toggle_kb_layout.sh"))
 -- # Restart Quickshell
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("killall qs; qs"))
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("killall qs; qs"))
 
 -- ## Volume
 
@@ -102,7 +98,7 @@ hl.bind("XF86AudioStop", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/media_playe
 -- ## Quickshell Widgets
 
 -- # Toggle App Launcher
-hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_launcher"))
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_launcher"))
 -- # Toggle Control Center
 hl.bind("CTRL + ALT + S", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_controlCenter"))
 -- # Toggle Power Menu

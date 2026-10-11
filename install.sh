@@ -52,7 +52,7 @@ dependencies=(
   smartmontools uwsm vim wget wireless_tools xdg-desktop-portal-hyprland
   xdg-utils bat bc btop cava eza fd fzf gnome-calculator gnome-font-viewer
   gnome-disk-utility gvfs gvfs-mtp highlight hypridle hyprpicker
-  hyprsunset imagemagick inetutils iwd jq lazygit loupe nautilus network-manager-applet
+  hyprsunset imagemagick inetutils iwd jq lazygit loupe nemo nemo-fileroller network-manager-applet
   networkmanager noto-fonts-emoji nwg-look openssl pacman-contrib pamixer pavucontrol
   pipewire pipewire-alsa pipewire-audio pipewire-pulse python-gobject python-pygments
   python-pip rfkill ripgrep starship ttf-cascadia-code-nerd ttf-jetbrains-mono-nerd
@@ -63,7 +63,7 @@ dependencies=(
   gnome-keyring libsecret awww playerctl ffmpeg exfatprogs dosfstools gvfs-afc power-profiles-daemon
   sof-firmware gamemode python-pam less qt5ct qt6ct papirus-icon-theme wf-recorder
   tesseract tesseract-data-eng tesseract-data-spa tree-sitter-cli
-  noto-fonts ttf-liberation ttf-roboto zoxide qt6-5compat
+  noto-fonts ttf-liberation ttf-roboto zoxide qt6-5compat easyeffects calf lsp-plugins-lv2
 )
 
 sudo pacman -S --needed --noconfirm "${dependencies[@]}" ||
@@ -289,6 +289,21 @@ for svc in NetworkManager.service bluetooth.service power-profiles-daemon.servic
     ok "$svc is already enabled and running."
   fi
 done
+
+# ── 11. damx_daemon setup ─────────────────────────────────────────────────────
+log "Running damx_daemon setup..."
+DAMX_SETUP="$REPO_DIR/damx_daemon/setup.sh"
+if [ -f "$DAMX_SETUP" ]; then
+  if [ -x "$DAMX_SETUP" ]; then
+    "$DAMX_SETUP" || warn "damx_daemon setup finished with some warnings/errors."
+  else
+    chmod +x "$DAMX_SETUP"
+    "$DAMX_SETUP" || warn "damx_daemon setup finished with some warnings/errors."
+  fi
+  ok "damx_daemon setup processed."
+else
+  warn "damx_daemon/setup.sh not found in repo, skipping."
+fi
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════╗${NC}"
