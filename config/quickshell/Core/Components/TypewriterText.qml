@@ -7,9 +7,7 @@ Item {
 
     property string text: ""
     property int customSize: Constants.sizeSm
-    property font font: Qt.font({
-        "family": Constants.fontFamily
-    })
+    property font font
     property color color: Theme.fg
     property int elide: Text.ElideRight
     property int wrapMode: Text.NoWrap
@@ -50,7 +48,7 @@ Item {
         font.weight: rootItem.font.weight
         font.bold: rootItem.font.bold
         font.italic: rootItem.font.italic
-        font.family: rootItem.font.family
+        font.family: Constants.fontFamily
         wrapMode: rootItem.wrapMode
         horizontalAlignment: rootItem.horizontalAlignment
         lineHeight: rootItem.lineHeight
@@ -66,7 +64,7 @@ Item {
         font.weight: rootItem.font.weight
         font.bold: rootItem.font.bold
         font.italic: rootItem.font.italic
-        font.family: rootItem.font.family
+        font.family: Constants.fontFamily
         color: rootItem.color
         elide: rootItem.elide
         wrapMode: rootItem.wrapMode
