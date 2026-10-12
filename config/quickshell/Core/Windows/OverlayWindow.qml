@@ -189,15 +189,6 @@ PanelWindow {
     }
 
     Component {
-        id: floatingComponent
-
-        FloatingOverlayStyle {
-            widget: root
-        }
-
-    }
-
-    Component {
         id: islandComponent
 
         IslandOverlayStyle {

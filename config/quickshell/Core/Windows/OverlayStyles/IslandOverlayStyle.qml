@@ -132,13 +132,6 @@ Item {
                 property bool isExpanded: false
             }
 
-            IslandStyle.IslandContent {
-                anchors.centerIn: parent
-                mainBar: dummyIslandBar
-                notificationService: root.notificationService
-                animateTransitions: false
-            }
-
         }
 
         // Prevent clicks on the container from reaching the dismiss area

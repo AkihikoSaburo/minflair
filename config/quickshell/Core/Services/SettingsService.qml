@@ -28,16 +28,7 @@ Item {
     property string barStyle: "convex"
     property bool barIslandMode: barStyle === "island"
     property bool barConvexMode: barStyle === "convex"
-    property bool barIslandExpanded: false
     property string islandRightMode: "auto"
-    property string barSlotL1: "workspaces"
-    property string barSlotL2: "none"
-    property string barSlotL3: "none"
-    property string barSlotC1: "clock"
-    property string barSlotC2: "media"
-    property string barSlotR1: "recording"
-    property string barSlotR2: "control_center"
-    property string barSlotR3: "tray"
     readonly property int barWidgetHeight: 28
 
     function saveSettings() {
@@ -153,52 +144,7 @@ Item {
             saveSettings();
 
     }
-    onBarIslandExpandedChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
     onIslandRightModeChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotL1Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotL2Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotL3Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotC1Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotC2Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotR1Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotR2Changed: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onBarSlotR3Changed: {
         if (settingsLoaded)
             saveSettings();
 
@@ -249,16 +195,7 @@ Item {
                 "cursorTheme": settingsService.cursorTheme,
                 "cursorSize": settingsService.cursorSize,
                 "barStyle": settingsService.barStyle,
-                "barIslandExpanded": settingsService.barIslandExpanded,
-                "islandRightMode": settingsService.islandRightMode,
-                "barSlotL1": settingsService.barSlotL1,
-                "barSlotL2": settingsService.barSlotL2,
-                "barSlotL3": settingsService.barSlotL3,
-                "barSlotC1": settingsService.barSlotC1,
-                "barSlotC2": settingsService.barSlotC2,
-                "barSlotR1": settingsService.barSlotR1,
-                "barSlotR2": settingsService.barSlotR2,
-                "barSlotR3": settingsService.barSlotR3
+                "islandRightMode": settingsService.islandRightMode
             };
             settingsSaver.command = ["sh", "-c", "mkdir -p ~/.cache/quickshell /var/tmp/sddm-theme && cat << 'EOF' > ~/.cache/quickshell/settings_prefs.json
 " + JSON.stringify(data) + "
@@ -417,35 +354,8 @@ cp ~/.cache/quickshell/settings_prefs.json /var/tmp/sddm-theme/settings_prefs.js
                             else
                                 settingsService.barStyle = "convex";
                         }
-                        if (prefs.barIslandExpanded !== undefined)
-                            settingsService.barIslandExpanded = prefs.barIslandExpanded;
-
                         if (prefs.islandRightMode !== undefined)
                             settingsService.islandRightMode = prefs.islandRightMode;
-
-                        if (prefs.barSlotL1 !== undefined)
-                            settingsService.barSlotL1 = prefs.barSlotL1;
-
-                        if (prefs.barSlotL2 !== undefined)
-                            settingsService.barSlotL2 = prefs.barSlotL2;
-
-                        if (prefs.barSlotL3 !== undefined)
-                            settingsService.barSlotL3 = prefs.barSlotL3;
-
-                        if (prefs.barSlotC1 !== undefined)
-                            settingsService.barSlotC1 = prefs.barSlotC1;
-
-                        if (prefs.barSlotC2 !== undefined)
-                            settingsService.barSlotC2 = prefs.barSlotC2;
-
-                        if (prefs.barSlotR1 !== undefined)
-                            settingsService.barSlotR1 = prefs.barSlotR1;
-
-                        if (prefs.barSlotR2 !== undefined)
-                            settingsService.barSlotR2 = prefs.barSlotR2;
-
-                        if (prefs.barSlotR3 !== undefined)
-                            settingsService.barSlotR3 = prefs.barSlotR3;
 
                     } catch (e) {
                         console.error("Error loading settings: " + e);

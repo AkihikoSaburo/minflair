@@ -71,7 +71,7 @@ Item {
         BarWidgetLoader {
             id: slot1
 
-            widgetType: SettingsService.barConvexMode ? "clock" : SettingsService.barSlotC1
+            widgetType: "clock"
             mainBar: root.mainBar
             isCenterSlot: true
             animateTransitions: false
@@ -92,7 +92,7 @@ Item {
         BarWidgetLoader {
             id: slot2
 
-            widgetType: SettingsService.barConvexMode ? "media" : SettingsService.barSlotC2
+            widgetType: "media"
             mainBar: root.mainBar
             isCenterSlot: true
             animateTransitions: false
