@@ -64,6 +64,7 @@ dependencies=(
   sof-firmware gamemode python-pam less qt5ct qt6ct papirus-icon-theme wf-recorder
   tesseract tesseract-data-eng tesseract-data-spa tree-sitter-cli
   noto-fonts ttf-liberation ttf-roboto zoxide qt6-5compat
+  sddm qt5-quickcontrols2 qt5-graphicaleffects qt5-svg
 )
 
 sudo pacman -S --needed --noconfirm "${dependencies[@]}" ||
@@ -76,7 +77,6 @@ aur_dependencies=(
   bibata-cursor-theme-bin
   fzf-tab-git
   quickshell
-  sddm-theme-tokyo-night-git
   tela-circle-icon-theme-dracula-git
   xxhash
   otf-geist
@@ -223,13 +223,34 @@ fi
 
 # ── 6. SDDM theme ─────────────────────────────────────────────────────────────
 log "Configuring SDDM theme..."
+SDDM_THEME_DIR="/usr/share/sddm/themes/minflair-sddm"
+
+if [ ! -d "$SDDM_THEME_DIR" ]; then
+  sudo mkdir -p /usr/share/sddm/themes
+  sudo git clone --depth 1 https://github.com/t4lentles5/tokyo-night-sddm.git "$SDDM_THEME_DIR" &&
+    ok "SDDM theme (minflair-sddm) installed." ||
+    warn "Failed to clone SDDM theme."
+else
+  if [ -d "$SDDM_THEME_DIR/.git" ]; then
+    sudo git -C "$SDDM_THEME_DIR" remote set-url origin https://github.com/t4lentles5/tokyo-night-sddm.git 2>/dev/null || true
+    sudo git -C "$SDDM_THEME_DIR" pull --ff-only 2>/dev/null &&
+      ok "SDDM theme (minflair-sddm) updated." ||
+      ok "SDDM theme (minflair-sddm) already up to date."
+  else
+    sudo rm -rf "$SDDM_THEME_DIR"
+    sudo git clone --depth 1 https://github.com/t4lentles5/tokyo-night-sddm.git "$SDDM_THEME_DIR" &&
+      ok "SDDM theme (minflair-sddm) reinstalled." ||
+      warn "Failed to clone SDDM theme."
+  fi
+fi
+
 if [ -f "$REPO_DIR/etc/sddm.conf" ]; then
   if [ -f /etc/sddm.conf ]; then
     cp /etc/sddm.conf "$BACKUP_DIR/sddm.conf.bak"
     ok "Existing /etc/sddm.conf backed up."
   fi
   sudo cp "$REPO_DIR/etc/sddm.conf" /etc/sddm.conf
-  ok "SDDM theme set to tokyo-night."
+  ok "SDDM theme set to minflair-sddm."
 else
   warn "etc/sddm.conf not found in repo, skipping SDDM config."
 fi
