@@ -15,6 +15,7 @@ from theme_appliers import (
     lazygit,
     nvim,
     qt,
+    sddm,
     starship,
     svg_assets,
 )
@@ -98,6 +99,7 @@ def main():
     btop.apply(home, colors)
     svg_assets.apply(home, colors)
     lazygit.apply(home, colors)
+    sddm.apply(home, colors)
 
 
 if __name__ == "__main__":

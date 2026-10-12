@@ -80,7 +80,7 @@ QtObject {
 
     function saveCurrentWallpaper(wallName) {
         wallpaperSaveProc.running = false;
-        wallpaperSaveProc.command = ["bash", "-c", "mkdir -p ~/.cache/quickshell && echo '" + wallName + "' > ~/.cache/quickshell/current_wallpaper"];
+        wallpaperSaveProc.command = ["bash", "-c", "mkdir -p ~/.cache/quickshell /var/tmp/sddm-theme && echo '" + wallName + "' > ~/.cache/quickshell/current_wallpaper && echo '" + wallName + "' > /var/tmp/sddm-theme/current_wallpaper && python3 " + Quickshell.shellDir + "/Scripts/theme/apply_theme.py 2>/dev/null || true"];
         wallpaperSaveProc.startDetached();
     }
 
