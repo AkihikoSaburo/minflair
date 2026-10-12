@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-10-12
+
+### Fixed
+
+- **Installer Dependency (`qt6-5compat`)**: Added `qt6-5compat` to the official package dependencies in `install.sh`. Resolves a startup crash where Quickshell failed to load `SvgIcon` and graphical effects (`module "Qt5Compat.GraphicalEffects" is not installed`) on fresh Arch installations.
+- **Power Menu Logout & State Reset**:
+  - Improved session logout command to cleanly terminate `uwsm` managed sessions (`uwsm stop`) when active, falling back to `hyprctl dispatch exit` or `loginctl terminate-user ""`.
+  - Reset pending action state (`pendingActionIndex = -1`) when closing or hiding the Power Menu to prevent stale confirmation states when reopened.
+
 ## [2.0.0] - 2026-10-09
 
 ### Added
