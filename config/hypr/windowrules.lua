@@ -1,3 +1,9 @@
+hl.window_rule({
+	name = "suppress-maximize-events",
+	match = { class = ".*" },
+	suppress_event = "maximize",
+})
+
 hl.window_rule({ match = { class = "^io.github.tanaybhomia.Whisp$" }, float = true, size = "800 500", center = true })
 hl.window_rule({ match = { class = "^vlc$" }, float = true })
 hl.window_rule({ match = { class = "^org.gnome.Loupe$" }, float = true, size = "1200 800", center = true })
