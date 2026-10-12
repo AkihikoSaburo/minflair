@@ -255,6 +255,19 @@ else
   warn "etc/sddm.conf not found in repo, skipping SDDM config."
 fi
 
+# Grant SDDM access to user avatar (~/.face / ~/.face.icon)
+if command -v setfacl &>/dev/null; then
+  if [ -f "$HOME/.face" ]; then
+    setfacl -m u:sddm:x "$HOME" 2>/dev/null || true
+    setfacl -m u:sddm:r "$HOME/.face" 2>/dev/null || true
+    ok "SDDM permissions configured for ~/.face."
+  fi
+  if [ -f "$HOME/.face.icon" ]; then
+    setfacl -m u:sddm:x "$HOME" 2>/dev/null || true
+    setfacl -m u:sddm:r "$HOME/.face.icon" 2>/dev/null || true
+  fi
+fi
+
 # ── 7. disable dunst (notifications handled by QuickShell) ────────────────────
 log "Disabling dunst (notifications are managed by QuickShell)..."
 if command -v dunst &>/dev/null; then
