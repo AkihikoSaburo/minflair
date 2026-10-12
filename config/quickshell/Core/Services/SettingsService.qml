@@ -260,7 +260,10 @@ Item {
                 "barSlotR2": settingsService.barSlotR2,
                 "barSlotR3": settingsService.barSlotR3
             };
-            settingsSaver.command = ["sh", "-c", "mkdir -p ~/.cache/quickshell && cat << 'EOF' > ~/.cache/quickshell/settings_prefs.json\n" + JSON.stringify(data) + "\nEOF"];
+            settingsSaver.command = ["sh", "-c", "mkdir -p ~/.cache/quickshell /var/tmp/sddm-theme && cat << 'EOF' > ~/.cache/quickshell/settings_prefs.json
+" + JSON.stringify(data) + "
+EOF
+cp ~/.cache/quickshell/settings_prefs.json /var/tmp/sddm-theme/settings_prefs.json 2>/dev/null && chmod 666 /var/tmp/sddm-theme/settings_prefs.json 2>/dev/null || true"];
             settingsSaver.running = true;
         }
     }

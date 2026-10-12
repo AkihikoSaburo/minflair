@@ -22,29 +22,11 @@ Item {
     property string diskTotal: "0 GB"
     property string gpuName: "None"
     property bool hasGpu: false
-    property real cpuUsage: 0
-    property real memUsed: 0
-    property string uptime: ""
 
     Component.onCompleted: {
         if (!staticInfoProc.running)
             staticInfoProc.running = true;
 
-        if (!statsProc.running)
-            statsProc.running = true;
-
-    }
-
-    Timer {
-        id: restartTimer
-
-        interval: 3000
-        repeat: false
-        onTriggered: {
-            if (!statsProc.running)
-                statsProc.running = true;
-
-        }
     }
 
     Process {
@@ -79,36 +61,6 @@ Item {
 
         stdout: StdioCollector {
             id: staticStdout
-        }
-
-    }
-
-    Process {
-        id: statsProc
-
-        command: ["python3", Quickshell.shellDir + "/Scripts/system/get_processes.py", "4000", "cpu", "--daemon", "--no-processes"]
-        running: true
-        onExited: (exitCode) => {
-            restartTimer.start();
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                if (!data)
-                    return ;
-
-                try {
-                    let parsedData = JSON.parse(data.trim());
-                    if (parsedData.system) {
-                        let sys = parsedData.system;
-                        root.cpuUsage = (sys.cpu_usage !== undefined) ? sys.cpu_usage : 0;
-                        root.memUsed = (sys.mem_used_gb !== undefined) ? sys.mem_used_gb : 0;
-                        root.uptime = sys.uptime || "";
-                    }
-                } catch (e) {
-                    console.error("Error parsing stats JSON: " + e);
-                }
-            }
         }
 
     }

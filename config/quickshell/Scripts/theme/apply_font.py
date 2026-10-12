@@ -100,6 +100,24 @@ def main():
         except Exception as e:
             print(f"Warning: Failed to update Kitty font: {e}", file=sys.stderr)
 
+    # 6. Update SDDM dynamic settings_prefs.json font
+    for prefs_path in [
+        Path("/var/tmp/sddm-theme/settings_prefs.json"),
+        home / ".cache" / "quickshell" / "settings_prefs.json",
+    ]:
+        if prefs_path.is_file():
+            try:
+                with open(prefs_path, "r", encoding="utf-8") as f:
+                    sddm_data = json.load(f)
+                sddm_data["fontFamily"] = font_name
+                with open(prefs_path, "w", encoding="utf-8") as f:
+                    json.dump(sddm_data, f, indent=2)
+            except Exception as e:
+                print(
+                    f"Warning: Failed to update {prefs_path} font: {e}",
+                    file=sys.stderr,
+                )
+
 
 if __name__ == "__main__":
     main()

@@ -15,8 +15,21 @@ def apply(home, colors):
         except OSError:
             pass
 
+        # Read font family from quickshell preferences if available
+        font_family = "Geist"
+        prefs_file = os.path.join(home, ".cache", "quickshell", "settings_prefs.json")
+        if os.path.exists(prefs_file):
+            try:
+                with open(prefs_file, "r") as pf:
+                    prefs_data = json.load(pf)
+                    if prefs_data.get("fontFamily"):
+                        font_family = prefs_data["fontFamily"]
+            except Exception:
+                pass
+
         # Prepare color map with sanitized hex colors
         theme_data = {
+            "font": font_family,
             "name": "Dynamic Tokyo Night",
             "bg": sanitize_color(colors.get("bg", "#09080b")),
             "opaqueBg": sanitize_color(colors.get("opaqueBg", "#09080b")),
@@ -64,15 +77,33 @@ def apply(home, colors):
                     if ext in [".png", ".jpg", ".jpeg"]:
                         shutil.copyfile(src_wall, dest_wall_png)
                     else:
-                        # Convert WebP or other formats using magick or ffmpeg for Qt5 compatibility
-                        res = subprocess.run(
-                            ["magick", src_wall, dest_wall_png], capture_output=True
+                        # For animated or non-standard formats (GIF, WebP, etc.), extract only the first frame
+                        # Check if Quickshell already extracted a cached static frame
+                        base_name = os.path.basename(src_wall)
+                        cached_frame = os.path.join(
+                            home, ".cache", "quickshell", "frames", base_name + ".jpg"
                         )
-                        if res.returncode != 0:
-                            subprocess.run(
-                                ["ffmpeg", "-y", "-i", src_wall, dest_wall_png],
+                        if os.path.exists(cached_frame):
+                            shutil.copyfile(cached_frame, dest_wall_png)
+                        else:
+                            # Use magick with [0] to only decode the first frame and avoid memory explosion
+                            res = subprocess.run(
+                                ["magick", f"{src_wall}[0]", dest_wall_png],
                                 capture_output=True,
                             )
+                            if res.returncode != 0:
+                                subprocess.run(
+                                    [
+                                        "ffmpeg",
+                                        "-y",
+                                        "-i",
+                                        src_wall,
+                                        "-vframes",
+                                        "1",
+                                        dest_wall_png,
+                                    ],
+                                    capture_output=True,
+                                )
 
                     if os.path.exists(dest_wall_png):
                         try:

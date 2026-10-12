@@ -1,14 +1,9 @@
 import "./Components"
-import Qt5Compat.GraphicalEffects
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 import qs.Core
-import qs.Core.Components
-import qs.Core.Services
 
 Item {
     id: root
@@ -82,26 +77,6 @@ Item {
                         }
 
                         PropertyChanges {
-                            target: topLeftGroup
-                            opacity: 0
-                        }
-
-                        PropertyChanges {
-                            target: topLeftTranslate
-                            y: -15
-                        }
-
-                        PropertyChanges {
-                            target: topRightGroup
-                            opacity: 0
-                        }
-
-                        PropertyChanges {
-                            target: topRightTranslate
-                            y: -15
-                        }
-
-                        PropertyChanges {
                             target: clockGroup
                             opacity: 0
                         }
@@ -149,26 +124,6 @@ Item {
                             target: mainContentScale
                             xScale: 1
                             yScale: 1
-                        }
-
-                        PropertyChanges {
-                            target: topLeftGroup
-                            opacity: 1
-                        }
-
-                        PropertyChanges {
-                            target: topLeftTranslate
-                            y: 0
-                        }
-
-                        PropertyChanges {
-                            target: topRightGroup
-                            opacity: 1
-                        }
-
-                        PropertyChanges {
-                            target: topRightTranslate
-                            y: 0
                         }
 
                         PropertyChanges {
@@ -294,21 +249,6 @@ Item {
                                     easing.overshoot: 1.15
                                 }
 
-                                NumberAnimation {
-                                    targets: [topLeftGroup, topRightGroup]
-                                    property: "opacity"
-                                    duration: Constants.animNormal
-                                    easing.type: Easing.OutCubic
-                                }
-
-                                NumberAnimation {
-                                    targets: [topLeftTranslate, topRightTranslate]
-                                    property: "y"
-                                    duration: Constants.animSlow
-                                    easing.type: Easing.OutBack
-                                    easing.overshoot: 1.1
-                                }
-
                             }
 
                             ScriptAction {
@@ -384,32 +324,6 @@ Item {
                             origin.y: mainContent.height / 2
                         }
                     ]
-
-                    TopLeftGroup {
-                        id: topLeftGroup
-
-                        anchors.top: parent.top
-                        anchors.left: parent.left
-                        anchors.margins: Constants.size2Xl
-
-                        transform: Translate {
-                            id: topLeftTranslate
-                        }
-
-                    }
-
-                    TopRightGroup {
-                        id: topRightGroup
-
-                        anchors.top: parent.top
-                        anchors.right: parent.right
-                        anchors.margins: Constants.size2Xl
-
-                        transform: Translate {
-                            id: topRightTranslate
-                        }
-
-                    }
 
                     ColumnLayout {
                         id: centerGroup
