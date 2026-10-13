@@ -68,10 +68,17 @@ sudo reboot
 
 ### 2. Set your profile picture (`.face`)
 
-To display your personal avatar on the dashboard and lock screen, place a square image (`PNG` or `JPG`) at `~/.face`:
+To display your personal avatar on the dashboard, lock screen, and SDDM login screen, place a square image (`PNG` or `JPG`) at `~/.face`:
 
 ```bash
 cp /path/to/your/avatar.png ~/.face
+```
+
+SDDM runs under its own system user (`sddm`). Because user home directories default to `700` (`drwx------`) permissions on Linux, grant SDDM traversal and read access via ACL so the avatar appears on the login screen:
+
+```bash
+setfacl -m u:sddm:x "$HOME"
+setfacl -m u:sddm:r "$HOME/.face"
 ```
 
 ### 3. Add your wallpapers
@@ -116,34 +123,40 @@ The Control Center includes an 80% charge limit toggle to prolong battery lifesp
 Minflair is designed around distinct bar architectures and a unified suite of desktop utilities. You can switch styles anytime directly from the Settings app:
 
 ### 🌟 Convex Style
+
 The signature desktop layout. Features an organic curved bezel frame where top widgets (Control Center, Notifications, Music, Dashboard) and bottom tools (Launcher, Clipboard, Wallpaper Selector) connect directly into the screen contours.
 
 <img src="./assets/convex.webp" alt="Convex Style Preview" />
 
 ### 🏝️ Island Style
+
 A modern, floating pill bar with an expandable dynamic island center. Notifications, media playback, and quick controls expand smoothly from the island while preserving maximum screen real estate.
 
 <img src="./assets/island.webp" alt="Island Style Preview" />
 
 ### 🎮 Gaming Mode
+
 An ultra-clean, zero-overhead bar dedicated to gaming sessions. Strips away all blur, animations, and rounded frames, activating tear-free variable refresh rate (VRR) and minimal latency for maximum performance.
 
 <img src="./assets/gaming.webp" alt="Gaming Mode Preview" />
 
 ### 📱 Standalone Applications
+
 Deep graphical customization built natively for Arch Linux:
 
-| **Settings App** | **Package Manager** | **Keybinds Cheat Sheet** |
-| :---: | :---: | :---: |
-| <img src="./assets/settings.png" alt="Settings App" /> | <img src="./assets/package-manager.png" alt="Package Manager" /> | <img src="./assets/keybinds.png" alt="Keybinds Cheat Sheet" /> |
+|                              **Settings App**                              |                            **Package Manager**                            |                     **Keybinds Cheat Sheet**                      |
+| :------------------------------------------------------------------------: | :-----------------------------------------------------------------------: | :---------------------------------------------------------------: |
+|           <img src="./assets/settings.png" alt="Settings App" />           |     <img src="./assets/package-manager.png" alt="Package Manager" />      |  <img src="./assets/keybinds.png" alt="Keybinds Cheat Sheet" />   |
 | Complete control over wallpapers, cropping, touchpad, and desktop effects. | Searchable GUI store to inspect, install, and update Arch & AUR packages. | Interactive shortcut browser accessible anytime with `Super + K`. |
 
 ### 🔒 Lock Screen
+
 A clean, wallpaper-matched lock screen featuring PAM authentication, smooth unlock transitions, and real-time battery and system status.
 
 <img src="./assets/lockscreen.webp" alt="Lock Screen Preview" />
 
 ### 🎛️ Shell Utilities & Overlays
+
 All desktop styles share a cohesive, shared set of utilities:
 
 - **Notification Center**: Dedicated panel for alert history with an unread badge on the bar.
@@ -180,12 +193,15 @@ Ensure your laptop vendor supports charging thresholds via the Linux kernel. Che
 </details>
 
 <details>
-<summary><b>Quickshell dashboard shows a generic avatar</b></summary>
+<summary><b>Avatar (.face) not showing on SDDM or Quickshell dashboard</b></summary>
 
-Place a square image at `~/.face` (PNG or JPG). The dashboard reads it from `$HOME/.face`. SDDM also uses this file for the login screen.
+Place a square image at `~/.face` (PNG or JPG). The dashboard and SDDM read it from `$HOME/.face`.
+
+If the avatar shows in test mode (`sddm-greeter --test-mode`) but not on the actual SDDM login screen, the `sddm` system user is blocked by restricted home directory permissions (`700`). Fix it by running:
 
 ```bash
-cp /path/to/avatar.png ~/.face
+setfacl -m u:sddm:x "$HOME"
+setfacl -m u:sddm:r "$HOME/.face"
 ```
 
 </details>
