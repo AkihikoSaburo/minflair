@@ -10,12 +10,15 @@ ThemedSlider {
 
     property int brightness: 0
     property bool isVisible: true
+    property int _pendingBrightness: 0
 
     function setBrightness(val) {
         let finalVal = Math.max(5, val);
-        brightSetProc.command = ["brightnessctl", "s", finalVal + "%"];
-        brightSetProc.running = true;
         root.brightness = finalVal;
+        root._pendingBrightness = finalVal;
+        if (!brightnessThrottleTimer.running)
+            brightnessThrottleTimer.start();
+
     }
 
     value: root.brightness
@@ -24,10 +27,26 @@ ThemedSlider {
         return root.setBrightness(val);
     }
     onIconClicked: {
-        if (root.brightness <= 5)
-            root.setBrightness(100);
-        else
-            root.setBrightness(5);
+        let target = (root.brightness <= 5) ? 100 : 5;
+        root.brightness = target;
+        root._pendingBrightness = target;
+        brightSetProc.command = ["brightnessctl", "s", target + "%"];
+        brightSetProc.running = true;
+    }
+
+    Timer {
+        id: brightnessThrottleTimer
+
+        interval: 35
+        repeat: false
+        onTriggered: {
+            if (!brightSetProc.running) {
+                brightSetProc.command = ["brightnessctl", "s", root._pendingBrightness + "%"];
+                brightSetProc.running = true;
+            } else {
+                brightnessThrottleTimer.restart();
+            }
+        }
     }
 
     Timer {
