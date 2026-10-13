@@ -154,9 +154,6 @@ PanelWindow {
             });
         }
     }
-    Keys.onEscapePressed: {
-        AppState.closeAllWidgets();
-    }
 
     anchors {
         top: true
@@ -188,6 +185,10 @@ PanelWindow {
         anchors.fill: parent
         anchors.topMargin: 34
         enabled: root.hasAnyOpen
+        focus: root.needsFocus
+        Keys.onEscapePressed: {
+            AppState.closeAllWidgets();
+        }
         onClicked: {
             AppState.closeAllWidgets();
         }

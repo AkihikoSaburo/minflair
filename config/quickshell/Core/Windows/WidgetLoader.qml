@@ -38,18 +38,23 @@ Item {
             _isClosing = true;
         }
     }
+    Component.onCompleted: {
+        if (root.widgetId !== "")
+            socketCleanupProc.running = true;
 
-    Timer {
-        id: socketRecoveryTimer
+    }
+    Component.onDestruction: {
+        server.active = false;
+    }
 
-        interval: 350
-        running: true
-        repeat: false
-        onTriggered: {
-            if (root.widgetId !== "") {
-                server.active = false;
+    Process {
+        id: socketCleanupProc
+
+        command: ["rm", "-f", "/tmp/quickshell_" + root.widgetId]
+        onExited: {
+            if (root.widgetId !== "")
                 server.active = true;
-            }
+
         }
     }
 
@@ -102,7 +107,7 @@ Item {
         id: server
 
         path: root.widgetId !== "" ? "/tmp/quickshell_" + root.widgetId : ""
-        active: root.widgetId !== ""
+        active: false
 
         handler: Component {
             Socket {

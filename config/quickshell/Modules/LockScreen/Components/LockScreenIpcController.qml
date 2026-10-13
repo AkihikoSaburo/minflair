@@ -33,6 +33,13 @@ Item {
         authProc.write(pwd + "\n");
     }
 
+    Component.onCompleted: {
+        socketCleanupProc.running = true;
+    }
+    Component.onDestruction: {
+        server.active = false;
+    }
+
     Timer {
         id: socketRecoveryTimer
 
@@ -57,11 +64,20 @@ Item {
         target: "lockScreen"
     }
 
+    Process {
+        id: socketCleanupProc
+
+        command: ["rm", "-f", "/tmp/quickshell_lockScreen"]
+        onExited: {
+            server.active = true;
+        }
+    }
+
     SocketServer {
         id: server
 
         path: "/tmp/quickshell_lockScreen"
-        active: true
+        active: false
 
         handler: Component {
             Socket {
