@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Pipewire
 import Quickshell.Wayland
 import qs.Core
 import qs.Core.Services
@@ -14,6 +15,10 @@ ShellRoot {
 
     readonly property bool isGaming: DisplayProfileService.gameModeActive
     readonly property bool isConvex: SettingsService.barStyle === "convex"
+
+    PwObjectTracker {
+        objects: [Pipewire.defaultAudioSource, Pipewire.defaultAudioSink]
+    }
 
     IpcHandler {
         function toggle(widgetId: string) {

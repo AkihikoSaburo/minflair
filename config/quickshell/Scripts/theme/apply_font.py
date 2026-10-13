@@ -110,8 +110,10 @@ def main():
                 with open(prefs_path, "r", encoding="utf-8") as f:
                     sddm_data = json.load(f)
                 sddm_data["fontFamily"] = font_name
-                with open(prefs_path, "w", encoding="utf-8") as f:
+                tmp_prefs = prefs_path.with_suffix(".tmp")
+                with open(tmp_prefs, "w", encoding="utf-8") as f:
                     json.dump(sddm_data, f, indent=2)
+                tmp_prefs.replace(prefs_path)
             except Exception as e:
                 print(
                     f"Warning: Failed to update {prefs_path} font: {e}",

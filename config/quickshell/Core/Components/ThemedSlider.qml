@@ -18,6 +18,7 @@ Item {
     property real stepSize: 1
     property real value: 0
     property bool enabled: true
+    property bool isMuted: false
     property bool showValue: true
     readonly property bool pressed: internalSlider.pressed
 
@@ -70,7 +71,7 @@ Item {
                 icon: root.icon
                 iconSize: 18
                 flat: true
-                iconColor: root.enabled ? Theme.fg : Theme.muted
+                iconColor: (root.enabled && !root.isMuted) ? Theme.fg : Theme.muted
                 bgColor: "transparent"
                 visible: root.icon !== ""
                 Layout.alignment: Qt.AlignVCenter
@@ -101,7 +102,7 @@ Item {
                 to: root.to
                 stepSize: root.stepSize
                 value: root.value
-                enabled: root.enabled
+                enabled: root.enabled && !root.isMuted
                 leftPadding: 0
                 rightPadding: 0
                 topPadding: 0
@@ -155,7 +156,14 @@ Item {
                         }
                         height: parent.height
                         radius: height / 2
-                        color: root.enabled ? root.accentColor : Theme.muted
+                        color: (root.enabled && !root.isMuted) ? root.accentColor : Theme.muted
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Constants.animFast
+                            }
+
+                        }
 
                         Behavior on width {
                             enabled: HyprlandService.enableAnimations && !internalSlider.pressed && !sliderHover.hovered
@@ -181,9 +189,16 @@ Item {
                     width: 5
                     height: Constants.size2Xl
                     radius: height / 2
-                    color: root.enabled ? root.accentColor : Theme.muted
+                    color: (root.enabled && !root.isMuted) ? root.accentColor : Theme.muted
                     scale: internalSlider.pressed ? 1.15 : (sliderHover.hovered ? 1.08 : 1)
                     transformOrigin: Item.Center
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Constants.animFast
+                        }
+
+                    }
 
                     Behavior on scale {
                         NumberAnimation {
@@ -216,7 +231,7 @@ Item {
                     return v + (root.suffix !== "" ? root.suffix : "");
                 }
                 font.bold: true
-                color: root.enabled ? Theme.fg : Theme.muted
+                color: (root.enabled && !root.isMuted) ? Theme.fg : Theme.muted
                 visible: root.showValue
                 Layout.alignment: Qt.AlignVCenter
                 Layout.preferredWidth: 38

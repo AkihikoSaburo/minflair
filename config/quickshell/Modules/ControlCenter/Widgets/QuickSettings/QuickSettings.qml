@@ -168,10 +168,13 @@ Item {
                             id: micSlider
 
                             Layout.fillWidth: true
-                            enabled: !AudioService.micMuted
+                            isMuted: AudioService.micMuted
                             value: AudioService.micVolume
                             icon: AudioService.micMuted ? "microphone-off" : "microphone"
                             onMoved: (val) => {
+                                if (AudioService.micMuted)
+                                    AudioService.setMicMuted(false);
+
                                 AudioService.setMicVolume(val);
                             }
                             onIconClicked: AudioService.setMicMuted(!AudioService.micMuted)

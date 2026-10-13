@@ -197,9 +197,11 @@ Item {
                 "barStyle": settingsService.barStyle,
                 "islandRightMode": settingsService.islandRightMode
             };
-            settingsSaver.command = ["sh", "-c", "mkdir -p ~/.cache/quickshell /var/tmp/sddm-theme && cat << 'EOF' > ~/.cache/quickshell/settings_prefs.json
+            settingsSaver.running = false;
+            settingsSaver.command = ["sh", "-c", "mkdir -p ~/.cache/quickshell /var/tmp/sddm-theme && cat << 'EOF' > ~/.cache/quickshell/settings_prefs.json.tmp
 " + JSON.stringify(data) + "
 EOF
+mv -f ~/.cache/quickshell/settings_prefs.json.tmp ~/.cache/quickshell/settings_prefs.json
 cp ~/.cache/quickshell/settings_prefs.json /var/tmp/sddm-theme/settings_prefs.json 2>/dev/null && chmod 666 /var/tmp/sddm-theme/settings_prefs.json 2>/dev/null || true"];
             settingsSaver.running = true;
         }
@@ -210,21 +212,11 @@ cp ~/.cache/quickshell/settings_prefs.json /var/tmp/sddm-theme/settings_prefs.js
 
         command: ["cat", Quickshell.env("HOME") + "/.cache/quickshell/settings_prefs.json"]
         onExited: function(exitCode) {
-            if (exitCode !== 0) {
-                SystemInfoService.applyProfile("balanced");
-                settingsService.saveSettings();
-                settingsService.settingsLoaded = true;
-                HyprlandService.triggerStartupTimer();
-                settingsService.applyCursor(settingsService.cursorTheme, settingsService.cursorSize);
-                settingsService.applyFont(settingsService.fontFamily, Math.round(11 * settingsService.fontScale));
-            }
-        }
-
-        stdout: SplitParser {
-            onRead: (data) => {
-                if (data && data.trim() !== "") {
+            if (exitCode === 0) {
+                let raw = settingsOutput.text ? settingsOutput.text.trim() : "";
+                if (raw.length > 0) {
                     try {
-                        let prefs = JSON.parse(data.trim());
+                        let prefs = JSON.parse(raw);
                         if (prefs.powerProfile !== undefined) {
                             SystemInfoService.powerProfile = prefs.powerProfile;
                             SystemInfoService.applyProfile(prefs.powerProfile);
@@ -306,18 +298,12 @@ cp ~/.cache/quickshell/settings_prefs.json /var/tmp/sddm-theme/settings_prefs.js
                         if (prefs.wpCropGravity !== undefined)
                             HyprlandService.wpCropGravity = prefs.wpCropGravity;
 
-                        if (prefs.micVolume !== undefined) {
-                            AudioService.micVolume = AudioService.hasPhysicalMic ? prefs.micVolume : 0;
-                            if (AudioService.hasPhysicalMic)
-                                AudioService.setMicVolume(prefs.micVolume);
+                        if (prefs.micVolume !== undefined && AudioService.hasPhysicalMic)
+                            AudioService.setMicVolume(prefs.micVolume);
 
-                        }
-                        if (prefs.micMuted !== undefined) {
-                            AudioService.micMuted = AudioService.hasPhysicalMic ? prefs.micMuted : true;
-                            if (AudioService.hasPhysicalMic)
-                                AudioService.setMicMuted(prefs.micMuted);
+                        if (prefs.micMuted !== undefined && AudioService.hasPhysicalMic)
+                            AudioService.setMicMuted(prefs.micMuted);
 
-                        }
                         if (prefs.quoteCategory !== undefined)
                             settingsService.quoteCategory = prefs.quoteCategory;
 
@@ -361,10 +347,22 @@ cp ~/.cache/quickshell/settings_prefs.json /var/tmp/sddm-theme/settings_prefs.js
                         console.error("Error loading settings: " + e);
                         SystemInfoService.applyProfile("balanced");
                     }
+                } else {
+                    SystemInfoService.applyProfile("balanced");
+                    settingsService.saveSettings();
                 }
-                settingsService.settingsLoaded = true;
-                HyprlandService.triggerStartupTimer();
+            } else {
+                SystemInfoService.applyProfile("balanced");
+                settingsService.saveSettings();
+                settingsService.applyCursor(settingsService.cursorTheme, settingsService.cursorSize);
+                settingsService.applyFont(settingsService.fontFamily, Math.round(11 * settingsService.fontScale));
             }
+            settingsService.settingsLoaded = true;
+            HyprlandService.triggerStartupTimer();
+        }
+
+        stdout: StdioCollector {
+            id: settingsOutput
         }
 
     }
