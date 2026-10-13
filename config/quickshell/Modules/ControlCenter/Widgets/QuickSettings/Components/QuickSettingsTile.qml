@@ -19,7 +19,7 @@ Rectangle {
     implicitWidth: 200
     radius: root.implicitHeight / 2
     color: Theme.bgSecondary
-    scale: iconMouseArea.pressed || textMouseArea.pressed ? 0.98 : 1
+    scale: (fullTileMouseArea.pressed || iconMouseArea.pressed || textMouseArea.pressed) ? 0.98 : 1
 
     HoverHandler {
         id: tileHover
@@ -47,9 +47,9 @@ Rectangle {
                 icon: root.icon
                 iconSize: 18
                 flat: true
-                iconColor: root.isActive ? Theme.bg : (iconMouseArea.containsMouse ? Theme.fg : Theme.muted)
+                iconColor: root.isActive ? Theme.bg : ((iconMouseArea.containsMouse || fullTileMouseArea.containsMouse) ? Theme.fg : Theme.muted)
                 anchors.centerIn: parent
-                scale: iconMouseArea.containsMouse ? 1.08 : 1
+                scale: (iconMouseArea.containsMouse || (!root.isActive && fullTileMouseArea.containsMouse)) ? 1.08 : 1
 
                 Behavior on scale {
                     NumberAnimation {
@@ -124,7 +124,7 @@ Rectangle {
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
                 onClicked: {
-                    if (root.hasMenu)
+                    if (root.hasMenu && root.isActive)
                         root.menuClicked();
                     else
                         root.clicked();
@@ -133,6 +133,17 @@ Rectangle {
 
         }
 
+    }
+
+    MouseArea {
+        id: fullTileMouseArea
+
+        anchors.fill: parent
+        visible: !root.isActive
+        enabled: !root.isActive
+        cursorShape: Qt.PointingHandCursor
+        hoverEnabled: true
+        onClicked: root.clicked()
     }
 
     Behavior on scale {
