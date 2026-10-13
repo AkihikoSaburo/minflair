@@ -44,7 +44,7 @@ SettingRowTemplate {
                 width: Constants.sizeLg
                 height: Constants.sizeLg
                 radius: width / 2
-                color: settingSwitch.checked ? "#ffffff" : (Theme.isDark ? Theme.muted : "#ffffff")
+                color: settingSwitch.checked ? Theme.white : (Theme.isDark ? Theme.muted : Theme.white)
                 scale: settingSwitch.pressed ? 0.9 : (settingSwitch.hovered ? 1.05 : 1)
                 layer.enabled: true
 

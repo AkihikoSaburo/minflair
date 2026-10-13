@@ -109,7 +109,7 @@ Item {
             customSize: Constants.sizeSm
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
-            color: isCurrent ? Theme.accent : "#ffffff"
+            color: isCurrent ? Theme.accent : Theme.white
             font.bold: isCurrent
             z: 11
 

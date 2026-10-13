@@ -196,7 +196,7 @@ Card {
                 }
                 height: Math.round(width / Math.max(0.1, root.wallRatio))
                 radius: Constants.sizeXs
-                color: "#000000"
+                color: Theme.black
                 clip: true
                 border.width: 1
                 border.color: Theme.border
