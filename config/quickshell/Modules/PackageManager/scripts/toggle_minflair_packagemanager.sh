@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "" | socat - UNIX-CONNECT:/tmp/quickshell_packagemanager
+exec "$HOME/.config/quickshell/Scripts/system/toggle_widget.sh" packagemanager
