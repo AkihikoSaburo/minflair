@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 
 def prepare_image(image_path):
@@ -21,6 +22,8 @@ def prepare_image(image_path):
                 need_extract = False
 
         if need_extract:
+            extracted = False
+            # 1. Try GdkPixbuf (extremely fast and lightweight for GIF and WebP, reads only frame 0)
             try:
                 import gi
 
@@ -54,11 +57,33 @@ def prepare_image(image_path):
                     pixbuf = bg
 
                 pixbuf.savev(cached_frame, "jpeg", ["quality"], ["90"])
+                extracted = True
             except Exception as e:
                 print("Warning: GdkPixbuf frame extraction failed:", e)
-                cached_frame = None
 
-        if cached_frame and os.path.exists(cached_frame):
+            # 2. Fallback to ffmpeg (fast seek, decodes single frame without memory ballooning)
+            if not extracted:
+                try:
+                    res = subprocess.run(
+                        [
+                            "ffmpeg",
+                            "-y",
+                            "-ss",
+                            "0",
+                            "-i",
+                            image_path,
+                            "-vframes",
+                            "1",
+                            cached_frame,
+                        ],
+                        capture_output=True,
+                    )
+                    if res.returncode == 0 and os.path.exists(cached_frame):
+                        extracted = True
+                except Exception as e:
+                    print("Warning: ffmpeg frame extraction failed:", e)
+
+        if os.path.exists(cached_frame):
             processing_path = cached_frame
             magick_path = cached_frame
         else:

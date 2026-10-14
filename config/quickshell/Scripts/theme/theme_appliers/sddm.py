@@ -1,9 +1,17 @@
 import json
 import os
 import shutil
-import subprocess
+import sys
 
 from color_utils import sanitize_color
+
+try:
+    from theme_extractors.image_utils import prepare_image
+except ImportError:
+    theme_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if theme_root not in sys.path:
+        sys.path.insert(0, theme_root)
+    from theme_extractors.image_utils import prepare_image
 
 
 def apply(home, colors):
@@ -73,37 +81,10 @@ def apply(home, colors):
 
                 if os.path.exists(src_wall):
                     dest_wall_png = os.path.join(sddm_dir, "wallpaper.png")
-                    ext = os.path.splitext(src_wall)[1].lower()
-                    if ext in [".png", ".jpg", ".jpeg"]:
-                        shutil.copyfile(src_wall, dest_wall_png)
-                    else:
-                        # For animated or non-standard formats (GIF, WebP, etc.), extract only the first frame
-                        # Check if Quickshell already extracted a cached static frame
-                        base_name = os.path.basename(src_wall)
-                        cached_frame = os.path.join(
-                            home, ".cache", "quickshell", "frames", base_name + ".jpg"
-                        )
-                        if os.path.exists(cached_frame):
-                            shutil.copyfile(cached_frame, dest_wall_png)
-                        else:
-                            # Use magick with [0] to only decode the first frame and avoid memory explosion
-                            res = subprocess.run(
-                                ["magick", f"{src_wall}[0]", dest_wall_png],
-                                capture_output=True,
-                            )
-                            if res.returncode != 0:
-                                subprocess.run(
-                                    [
-                                        "ffmpeg",
-                                        "-y",
-                                        "-i",
-                                        src_wall,
-                                        "-vframes",
-                                        "1",
-                                        dest_wall_png,
-                                    ],
-                                    capture_output=True,
-                                )
+                    # Safely obtain static image via prepare_image (cached single-frame extraction, no memory spikes)
+                    static_wall, _ = prepare_image(src_wall)
+                    if os.path.exists(static_wall):
+                        shutil.copyfile(static_wall, dest_wall_png)
 
                     if os.path.exists(dest_wall_png):
                         try:
