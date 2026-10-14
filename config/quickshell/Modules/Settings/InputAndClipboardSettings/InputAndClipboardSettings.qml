@@ -8,6 +8,38 @@ import qs.Modules.Settings.Components
 AppContainer {
     id: root
 
+    readonly property var layoutDefinitions: [
+        { code: "us", name: "English (US)" },
+        { code: "gb", name: "English (UK)" },
+        { code: "latam", name: "Spanish (LatAm)" },
+        { code: "es", name: "Spanish (ES)" },
+        { code: "ara", name: "Arabic" },
+        { code: "fr", name: "French (AZERTY)" },
+        { code: "ca", name: "French (Canada)" },
+        { code: "de", name: "German (QWERTZ)" },
+        { code: "it", name: "Italian" },
+        { code: "pt", name: "Portuguese" },
+        { code: "br", name: "Portuguese (Brazil)" },
+        { code: "ru", name: "Russian" },
+        { code: "ua", name: "Ukrainian" },
+        { code: "tr", name: "Turkish" },
+        { code: "se", name: "Swedish" },
+        { code: "no", name: "Norwegian" },
+        { code: "dk", name: "Danish" },
+        { code: "fi", name: "Finnish" },
+        { code: "cz", name: "Czech" },
+        { code: "gr", name: "Greek" },
+        { code: "il", name: "Hebrew" }
+    ]
+
+    readonly property var layoutNameMap: {
+        let map = {};
+        for (let i = 0; i < layoutDefinitions.length; i++) {
+            map[layoutDefinitions[i].code] = layoutDefinitions[i].name;
+        }
+        return map;
+    }
+
     AppGroup {
         title: "Keyboard Layouts"
         icon: "keyboard"
@@ -21,20 +53,8 @@ AppContainer {
                 spacing: Constants.sizeSm
 
                 SettingRowTemplate {
-                    label: {
-                        let nameMap = {
-                            "us": "English (US)",
-                            "latam": "Spanish (LatAm)",
-                            "es": "Spanish (ES)",
-                            "fr": "French",
-                            "de": "German",
-                            "it": "Italian",
-                            "pt": "Portuguese",
-                            "ru": "Russian"
-                        };
-                        return nameMap[modelData] || modelData;
-                    }
-                    description: index === 0 ? "Primary Layout" : "Secondary Layout"
+                    label: root.layoutNameMap[modelData] || modelData
+                    description: index === 0 ? "Primary Layout" : ("Layout " + (index + 1))
 
                     SvgIconButton {
                         icon: "trash"
@@ -61,32 +81,19 @@ AppContainer {
             label: "Add Layout"
             description: "Select a language to add"
             searchable: true
-            model: [
-                "None",
-                "English (US)",
-                "Spanish (LatAm)",
-                "Spanish (ES)",
-                "French",
-                "German",
-                "Italian",
-                "Portuguese",
-                "Russian"
-            ]
+            comboWidth: 200
+            model: ["None"].concat(root.layoutDefinitions.map(d => d.name))
             currentIndex: 0
             onActivated: (index) => {
                 if (index === 0) return;
-                
-                let codeMap = [
-                    "", "us", "latam", "es", "fr", "de", "it", "pt", "ru"
-                ];
-                let code = codeMap[index];
+
+                let code = root.layoutDefinitions[index - 1].code;
                 if (SettingsService.enabledKbLayouts.indexOf(code) === -1) {
                     let layouts = [...SettingsService.enabledKbLayouts];
                     layouts.push(code);
                     SettingsService.enabledKbLayouts = layouts;
                 }
-                
-                // Reset the select back to "None"
+
                 currentIndex = Qt.binding(() => 0);
             }
         }

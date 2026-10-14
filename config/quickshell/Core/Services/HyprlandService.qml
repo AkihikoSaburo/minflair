@@ -179,7 +179,7 @@ Item {
         }
     }
     onKeyboardLayoutChanged: {
-        if (SettingsService.settingsLoaded) {
+        if (SettingsService.settingsLoaded && !isSyncing) {
             SettingsService.saveSettings();
             changeLayoutProc.command = ["hyprctl", "eval", "hl.config({ input = { kb_layout = '" + keyboardLayout + "' } })"];
             changeLayoutProc.running = false;
@@ -468,47 +468,74 @@ Item {
     Process {
         id: activeLayoutProc
 
-        command: ["sh", "-c", "hyprctl devices -j | jq -r '(.keyboards | (map(select(.main == true))[0] // .[0])) | .active_keymap'"]
+        command: ["sh", "-c", "hyprctl devices -j | jq -r '(.keyboards | (map(select(.main == true))[0] // .[0])) | (((.layout // \"\") | split(\",\"))[(.active_layout_index // 0)] // \"\") + \"|\" + (.active_keymap // \"\")'"]
 
         stdout: SplitParser {
             onRead: (data) => {
                 if (!data)
                     return ;
 
-                let raw = data.trim();
+                let parts = data.trim().split("|");
+                let xkbCode = parts[0] ? parts[0].trim() : "";
+                let raw = parts[1] ? parts[1].trim() : "";
                 let code = "us";
-                // Map Hyprland full layout names to XKB codes
+                // Comprehensive map of Hyprland keymap display names to XKB layout codes
                 const layoutMap = {
+                    "Arabic": "ara",
+                    "English (US)": "us",
+                    "English (UK)": "gb",
                     "English": "us",
-                    "Spanish": "latam",
                     "Spanish (Latin American)": "latam",
                     "Spanish (Spain)": "es",
+                    "Spanish": "latam",
+                    "French (Canada)": "ca",
                     "French": "fr",
                     "German": "de",
                     "Italian": "it",
+                    "Portuguese (Brazil)": "br",
                     "Portuguese": "pt",
-                    "Russian": "ru"
+                    "Russian": "ru",
+                    "Ukrainian": "ua",
+                    "Polish": "pl",
+                    "Turkish": "tr",
+                    "Japanese": "jp",
+                    "Korean": "kr",
+                    "Dutch": "nl",
+                    "Swedish": "se",
+                    "Norwegian": "no",
+                    "Danish": "dk",
+                    "Finnish": "fi",
+                    "Czech": "cz",
+                    "Greek": "gr",
+                    "Hebrew": "il"
                 };
-                // Try exact match first
-                if (layoutMap[raw] !== undefined) {
+                // Prefer the exact XKB layout code already reported by Hyprland
+                if (xkbCode !== "" && xkbCode !== "null" && xkbCode !== "undefined") {
+                    code = xkbCode;
+                } else if (layoutMap[raw] !== undefined) {
                     code = layoutMap[raw];
                 } else {
-                    // Try partial match (e.g. "English (US)")
                     let matched = false;
                     for (let key of Object.keys(layoutMap)) {
-                        if (raw.includes(key)) {
+                        if (raw.indexOf(key) !== -1) {
                             code = layoutMap[key];
                             matched = true;
                             break;
                         }
                     }
-                    if (!matched)
-                        code = raw.toLowerCase().split(" ")[0];
-
+                    if (!matched) {
+                        let candidate = raw.toLowerCase().split(" ")[0];
+                        if (candidate.length >= 2 && candidate.length <= 4)
+                            code = candidate;
+                        else
+                            code = "us";
+                    }
                 }
-                if (hyprlandService.keyboardLayout !== code)
+                if (hyprlandService.keyboardLayout !== code) {
+                    hyprlandService.isSyncing = true;
                     hyprlandService.keyboardLayout = code;
-
+                    hyprlandService.isSyncing = false;
+                }
             }
         }
 
