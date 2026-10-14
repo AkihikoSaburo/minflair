@@ -147,7 +147,7 @@ case "$MODE" in
     grim -g "$geom" "$temp_ocr" 2>/dev/null
     if [ -f "$temp_ocr" ]; then
       tesseract "$temp_ocr" stdout -l eng+spa 2>/dev/null | wl-copy
-      notify-send -r 699 "Screenshot" "Text extracted and copied to clipboard" 2>/dev/null || true
+      qs ipc call osd showMessage "OCR" "Copied" "ocr" 2>/dev/null || true
       rm -f "$temp_ocr"
       play_sound
     fi

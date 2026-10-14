@@ -77,4 +77,4 @@ fi
 
 "${CMD[@]}" >>"$LOG" 2>&1
 
-notify-send -i video-x-generic "Recording finished" "Saved to: $FILENAME"
+qs ipc call osd showMessage "Recording" "Saved" "record-icon" 2>/dev/null || true
