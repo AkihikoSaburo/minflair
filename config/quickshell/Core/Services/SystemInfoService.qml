@@ -50,6 +50,9 @@ Item {
         else
             return "Stationary";
     }
+    property bool isPluggedIn: false
+    property bool _powerInitialized: false
+    property bool _fullNotified: false
 
     function applyProfile(profile) {
         let targetProfile = profile;
@@ -121,18 +124,72 @@ Item {
     Process {
         id: batteryProc
 
-        command: ["sh", "-c", 'for b in /sys/class/power_supply/BAT* /sys/class/power_supply/*; do if [ -d "$b" ] && [ -f "$b/capacity" ]; then if [ -f "$b/type" ] && [ "$(cat "$b/type" 2>/dev/null)" != "Battery" ]; then continue; fi; if [ -f "$b/present" ] && [ "$(cat "$b/present" 2>/dev/null)" = "0" ]; then continue; fi; c=$(cat "$b/capacity" 2>/dev/null); s=$(cat "$b/status" 2>/dev/null); [ -z "$s" ] && s="Unknown"; if [ -n "$c" ]; then echo "$c $s"; exit 0; fi; fi; done; echo "0 No battery"']
+        command: ["sh", "-c", 'cap=0; stat="Unknown"; ac=0; for p in /sys/class/power_supply/*; do [ ! -d "$p" ] && continue; t=$(cat "$p/type" 2>/dev/null); if [ "$t" = "Mains" ] || [ "$t" = "USB" ] || [ "$t" = "AC" ]; then [ "$(cat "$p/online" 2>/dev/null)" = "1" ] && ac=1; elif [ "$t" = "Battery" ] || [ -f "$p/capacity" ]; then [ -f "$p/present" ] && [ "$(cat "$p/present" 2>/dev/null)" = "0" ] && continue; c=$(cat "$p/capacity" 2>/dev/null); s=$(cat "$p/status" 2>/dev/null); [ -n "$c" ] && cap=$c; [ -n "$s" ] && stat=$s; fi; done; [ "$cap" = "0" ] && [ "$stat" = "Unknown" ] && stat="No battery"; echo "$cap|$stat|$ac"']
 
         stdout: SplitParser {
             onRead: (data) => {
-                let parts = data.trim().split(" ");
-                if (parts.length >= 2) {
+                let parts = data.trim().split("|");
+                if (parts.length >= 3) {
                     let capacity = parseInt(parts[0]);
-                    let status = parts.slice(1).join(" ");
-                    systemInfoService.batteryLevel = isNaN(capacity) ? 0 : Math.min(100, Math.max(0, capacity));
+                    let status = parts[1];
+                    let acVal = parseInt(parts[2]);
+                    let plugged = (acVal === 1 || status === "Charging");
+                    let level = isNaN(capacity) ? 0 : Math.min(100, Math.max(0, capacity));
+                    systemInfoService.batteryLevel = level;
                     systemInfoService.batteryStatus = status;
-                    systemInfoService.hasBattery = (status !== "No battery");
+                    systemInfoService.hasBattery = (parts[0] !== "0" || status !== "No battery");
+                    if (systemInfoService.hasBattery) {
+                        let isFull = plugged && (status === "Full" || (status === "Not charging" && level >= 95) || level >= 100);
+                        if (!systemInfoService._powerInitialized) {
+                            systemInfoService.isPluggedIn = plugged;
+                            systemInfoService._powerInitialized = true;
+                            if (isFull)
+                                systemInfoService._fullNotified = true;
+
+                        } else if (systemInfoService.isPluggedIn !== plugged) {
+                            systemInfoService.isPluggedIn = plugged;
+                            if (plugged) {
+                                OsdService.displayMessage("Charger Connected", systemInfoService.batteryPercentage, "charger-filled", true);
+                                if (isFull)
+                                    systemInfoService._fullNotified = true;
+
+                            } else {
+                                systemInfoService._fullNotified = false;
+                                OsdService.displayMessage("Charger Disconnected", systemInfoService.batteryPercentage, "charger", false);
+                            }
+                        } else if (isFull && !systemInfoService._fullNotified) {
+                            systemInfoService._fullNotified = true;
+                            OsdService.displayMessage("Battery Full", systemInfoService.batteryPercentage, "charger-filled", true);
+                        } else if (!isFull && level < 95) {
+                            systemInfoService._fullNotified = false;
+                        }
+                    }
                 }
+            }
+        }
+
+    }
+
+    Timer {
+        id: powerDebounceTimer
+
+        interval: 150
+        repeat: false
+        onTriggered: {
+            batteryProc.running = false;
+            batteryProc.running = true;
+        }
+    }
+
+    Process {
+        id: powerUeventProc
+
+        command: ["sh", "-c", "exec udevadm monitor -u -s power_supply 2>/dev/null"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                powerDebounceTimer.restart();
             }
         }
 
@@ -146,8 +203,9 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            batteryProc.running = false;
-            batteryProc.running = true;
+            if (!powerDebounceTimer.running && !batteryProc.running)
+                batteryProc.running = true;
+
         }
     }
 

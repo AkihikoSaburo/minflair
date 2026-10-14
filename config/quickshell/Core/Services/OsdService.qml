@@ -26,6 +26,7 @@ Item {
         osdService.isMuted = isMuted;
         osdService.showProgress = true;
         osdService.isOpen = true;
+        hideTimer.interval = 1500;
         hideTimer.restart();
     }
 
@@ -36,6 +37,7 @@ Item {
         osdService.showProgress = false;
         osdService.isMuted = (isAccent === false);
         osdService.isOpen = true;
+        hideTimer.interval = 2000;
         hideTimer.restart();
     }
 

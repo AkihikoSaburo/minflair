@@ -335,51 +335,13 @@ Item {
     }
 
     Connections {
-        property string _prevStatus: ""
         property int _prevLevel: -1
-        property bool _notifiedFull: false
-
-        function onBatteryStatusChanged() {
-            let status = SystemInfoService.batteryStatus;
-            let level = SystemInfoService.batteryLevel;
-            if (!SystemInfoService.hasBattery || status === "" || status === _prevStatus)
-                return ;
-
-            if (_prevStatus !== "") {
-                let summary = "Battery";
-                let body = "";
-                if (status === "Charging") {
-                    if (_prevStatus === "Discharging") {
-                        summary = "Battery";
-                        body = "Charger connected";
-                    }
-                } else if (status === "Discharging") {
-                    if (_prevStatus === "Charging" || _prevStatus === "Full" || _prevStatus === "Not charging") {
-                        summary = "Battery";
-                        body = "Charger disconnected";
-                    }
-                } else if (status === "Full" || status === "Not charging") {
-                    if (!_notifiedFull && status === "Full" && level >= 95) {
-                        summary = "Battery";
-                        body = "Battery fully charged";
-                        _notifiedFull = true;
-                    }
-                }
-                if (body !== "")
-                    root.notify(summary, body);
-
-            }
-            _prevStatus = status;
-        }
 
         function onBatteryLevelChanged() {
             let status = SystemInfoService.batteryStatus;
             let level = SystemInfoService.batteryLevel;
             if (!SystemInfoService.hasBattery || level <= 0 || level === _prevLevel)
                 return ;
-
-            if (status === "Discharging" && level < 95)
-                _notifiedFull = false;
 
             if (_prevLevel !== -1 && status === "Discharging") {
                 let threshold = 0;
@@ -389,9 +351,12 @@ Item {
                     threshold = 10;
                 else if (level <= 20 && _prevLevel > 20)
                     threshold = 20;
-                if (threshold > 0)
-                    root.notify("Low Battery", "Battery level: " + level + "%", "", "System", NotificationUrgency.Critical);
+                if (threshold > 0) {
+                    OsdService.displayMessage("Low Battery", level + "%", "warning", false);
+                    if (threshold <= 10)
+                        root.notify("Low Battery", "Battery level: " + level + "%", "warning", "System", NotificationUrgency.Critical);
 
+                }
             }
             _prevLevel = level;
         }
