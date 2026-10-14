@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import qs.Core
 import qs.Core.Components
@@ -22,13 +23,15 @@ Item {
     // State & mode flags
     readonly property bool hasActiveNotifications: notifLayer.hasActiveNotifications
     property real notifProgress: (hasActiveNotifications && !notifLayer.isRemovingNotif) ? 1 : 0
+    readonly property bool hasActiveOsd: OsdService.isOpen && !hasActiveNotifications && !isOpen
+    property real osdProgress: hasActiveOsd ? 1 : 0
     readonly property bool isCenterExpanded: SettingsService.barConvexMode && AppState.isWidgetOpen("music")
     readonly property string activeContentType: AppState.isWidgetOpen("music") ? "music" : ""
     property bool isOpen: false
     property bool isClosing: false
     property real openProgress: 0
     readonly property bool isOverlayActive: isOpen || (openProgress > 0.001) || isClosing
-    readonly property bool isOccupied: isOverlayActive || hasActiveNotifications
+    readonly property bool isOccupied: isOverlayActive || hasActiveNotifications || hasActiveOsd
     // Geometry calculations
     readonly property real idleW: {
         let contentW = centerSlot.implicitWidth > 0 ? centerSlot.implicitWidth : centerSlot.targetWidth;
@@ -38,6 +41,7 @@ Item {
     readonly property real idleH: BarStyleConfig.barHeight("convex")
     readonly property real notifW: notifLayer.notifW
     readonly property real notifH: notifLayer.notifH
+    readonly property real osdW: 280 + (flareW * 2)
     readonly property real expandedW: (centerPanel.item && centerPanel.item.implicitWidth > 0 ? centerPanel.item.implicitWidth : 240) + totalHorizPadding
     readonly property real expandedH: (centerPanel.item && centerPanel.item.implicitHeight > 0 ? centerPanel.item.implicitHeight : 380) + totalVertPadding
     property real smoothIdleW: idleW
@@ -45,7 +49,12 @@ Item {
     property real smoothNotifH: notifH
     property real smoothExpandedW: expandedW
     property real smoothExpandedH: expandedH
-    readonly property real baseW: smoothIdleW + (smoothNotifW - smoothIdleW) * notifProgress
+    readonly property real baseW: {
+        if (notifProgress > 0)
+            return smoothIdleW + (smoothNotifW - smoothIdleW) * notifProgress;
+
+        return smoothIdleW + (osdW - smoothIdleW) * osdProgress;
+    }
     readonly property real baseH: idleH + (smoothNotifH - idleH) * notifProgress
     readonly property real currentWidth: Math.round(baseW + (smoothExpandedW - baseW) * openProgress)
     readonly property real currentHeight: Math.round(baseH + (smoothExpandedH - baseH) * openProgress)
@@ -127,11 +136,11 @@ Item {
         width: Math.round(root.smoothIdleW)
         height: root.idleH
         opacity: {
-            let p = Math.max(root.openProgress, root.notifProgress);
+            let p = Math.max(root.openProgress, Math.max(root.notifProgress, root.osdProgress));
             return Math.min(1, Math.max(0, 1 - p / 0.15));
         }
         scale: {
-            let p = Math.max(root.openProgress, root.notifProgress);
+            let p = Math.max(root.openProgress, Math.max(root.notifProgress, root.osdProgress));
             return 1 - 0.04 * Math.min(1, p / 0.15);
         }
         visible: opacity > 0.001
@@ -172,6 +181,66 @@ Item {
         openProgress: root.openProgress
         isOpen: root.isOpen
         activeContentType: root.activeContentType
+    }
+
+    // LAYER 4: OSD CONTENT
+    Item {
+        id: osdLayer
+
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: Math.max(0, root.width - (root.flareW * 2) - Constants.sizeLg * 2)
+        height: root.idleH
+        opacity: Math.min(1, Math.max(0, (root.osdProgress - 0.15) / 0.85))
+        visible: opacity > 0.001
+
+        RowLayout {
+            anchors.fill: parent
+            spacing: Constants.sizeSm
+
+            SvgIcon {
+                Layout.alignment: Qt.AlignVCenter
+                icon: OsdService.icon
+                iconColor: OsdService.isMuted ? Theme.muted : Theme.accent
+                flat: true
+                iconSize: Constants.sizeMd
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                height: Constants.size2Xs + 2
+                radius: height / 2
+                color: Theme.bgSecondary
+
+                Rectangle {
+                    height: parent.height
+                    radius: parent.radius
+                    color: OsdService.isMuted ? Theme.muted : Theme.accent
+                    width: Math.max(0, Math.min(1, OsdService.level)) * parent.width
+
+                    Behavior on width {
+                        NumberAnimation {
+                            duration: Constants.animFast
+                            easing.type: Easing.OutQuad
+                        }
+
+                    }
+
+                }
+
+            }
+
+            ThemedText {
+                Layout.alignment: Qt.AlignVCenter
+                text: OsdService.valueText
+                customSize: Constants.sizeSm
+                font.weight: Font.DemiBold
+                color: OsdService.isMuted ? Theme.muted : Theme.fg
+            }
+
+        }
+
     }
 
     // ANIMATIONS & BEHAVIORS
@@ -251,6 +320,16 @@ Item {
 
         NumberAnimation {
             duration: Constants.animNormal
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on osdProgress {
+        enabled: HyprlandService.enableAnimations
+
+        NumberAnimation {
+            duration: root.hasActiveOsd ? Constants.animFast : Constants.animNormal
             easing.type: Easing.OutCubic
         }
 

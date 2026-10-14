@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import qs.Core
 import qs.Core.Components
 import qs.Core.Services
@@ -15,8 +16,11 @@ IslandBackground {
     readonly property bool hasActiveNotifications: notifLayer.hasActiveNotifications
     readonly property bool isRemovingNotif: notifLayer.isRemovingNotif
     property real notifProgress: (hasActiveNotifications && !isRemovingNotif) ? 1 : 0
-    readonly property bool isHovered: centerHover.hovered && !islandBar.isOpen && openProgress === 0 && !hasActiveNotifications
-    readonly property bool isTranslated: isHovered || isTarget || openProgress > 0 || (hasActiveNotifications && notifProgress > 0)
+    readonly property bool hasActiveOsd: OsdService.isOpen && !hasActiveNotifications && openProgress === 0
+    property real osdProgress: hasActiveOsd ? 1 : 0
+    readonly property real osdW: 260
+    readonly property bool isHovered: centerHover.hovered && !islandBar.isOpen && openProgress === 0 && !hasActiveNotifications && !hasActiveOsd
+    readonly property bool isTranslated: isHovered || isTarget || openProgress > 0 || (hasActiveNotifications && notifProgress > 0) || (hasActiveOsd && osdProgress > 0)
     readonly property real notifW: notifLayer.notifW
     readonly property real notifH: notifLayer.notifH
     readonly property real notifR: Constants.sizeXl
@@ -27,7 +31,12 @@ IslandBackground {
     readonly property real panelW: isTarget ? islandComponents.getTargetWidth(islandBar.effectivePanel, centerLoader.item, 0) : smoothIdleW
     readonly property real panelH: isTarget ? islandComponents.getTargetHeight(islandBar.effectivePanel, centerLoader.item) : idleH
     readonly property real panelR: isTarget ? islandComponents.getTargetRadius(islandBar.effectivePanel) : idleR
-    readonly property real baseW: smoothIdleW + (notifW - smoothIdleW) * notifProgress
+    readonly property real baseW: {
+        if (notifProgress > 0)
+            return smoothIdleW + (notifW - smoothIdleW) * notifProgress;
+
+        return smoothIdleW + (osdW - smoothIdleW) * osdProgress;
+    }
     readonly property real baseH: idleH + (notifH - idleH) * notifProgress
     readonly property real baseR: idleR + (notifR - idleR) * notifProgress
     property real smoothPanelW: panelW
@@ -63,9 +72,9 @@ IslandBackground {
         id: clockContent
 
         anchors.centerIn: parent
-        opacity: Math.min(1, Math.max(0, 1 - Math.max(root.openProgress, root.notifProgress) / 0.15))
+        opacity: Math.min(1, Math.max(0, 1 - Math.max(root.openProgress, Math.max(root.notifProgress, root.osdProgress)) / 0.15))
         visible: opacity > 0.001
-        clickable: !islandBar.isOpen && !root.hasActiveNotifications
+        clickable: !islandBar.isOpen && !root.hasActiveNotifications && !root.hasActiveOsd
     }
 
     IslandNotifLayer {
@@ -78,6 +87,64 @@ IslandBackground {
         anchors.centerIn: parent
         width: parent.width
         height: parent.height
+    }
+
+    Item {
+        id: islandOsdContent
+
+        anchors.fill: parent
+        anchors.leftMargin: Constants.sizeSm + 4
+        anchors.rightMargin: Constants.sizeSm + 4
+        opacity: Math.min(1, Math.max(0, (root.osdProgress - 0.15) / 0.85))
+        visible: opacity > 0.001
+
+        RowLayout {
+            anchors.fill: parent
+            spacing: Constants.sizeXs
+
+            SvgIcon {
+                Layout.alignment: Qt.AlignVCenter
+                icon: OsdService.icon
+                iconColor: OsdService.isMuted ? Theme.muted : Theme.accent
+                flat: true
+                iconSize: Constants.sizeSm + 2
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                height: Constants.size2Xs + 1
+                radius: height / 2
+                color: Theme.bgSecondary
+
+                Rectangle {
+                    height: parent.height
+                    radius: parent.radius
+                    color: OsdService.isMuted ? Theme.muted : Theme.accent
+                    width: Math.max(0, Math.min(1, OsdService.level)) * parent.width
+
+                    Behavior on width {
+                        NumberAnimation {
+                            duration: Constants.animFast
+                            easing.type: Easing.OutQuad
+                        }
+
+                    }
+
+                }
+
+            }
+
+            ThemedText {
+                Layout.alignment: Qt.AlignVCenter
+                text: OsdService.valueText
+                customSize: Constants.sizeXs + 1
+                font.weight: Font.DemiBold
+                color: OsdService.isMuted ? Theme.muted : Theme.fg
+            }
+
+        }
+
     }
 
     Item {
@@ -204,6 +271,16 @@ IslandBackground {
                     islandBar.checkFinishClosing();
 
             }
+        }
+
+    }
+
+    Behavior on osdProgress {
+        enabled: HyprlandService.enableAnimations
+
+        NumberAnimation {
+            duration: root.hasActiveOsd ? Constants.animFast : Constants.animNormal
+            easing.type: Easing.OutCubic
         }
 
     }

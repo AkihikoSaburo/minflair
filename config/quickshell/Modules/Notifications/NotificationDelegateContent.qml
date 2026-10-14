@@ -62,9 +62,6 @@ Item {
         if (bodyText.visible && bodyText.text !== "")
             h += (h > 0 ? textColumn.spacing : 0) + bodyText.implicitHeight;
 
-        if (osdBar.visible)
-            h += (h > 0 ? textColumn.spacing : 0) + osdBar.height;
-
         return h > 0 ? h : Constants.size2Xl;
     }
     readonly property int calculatedIconSize: Math.max(Constants.sizeLg, Math.round(textContentHeight))
@@ -121,13 +118,6 @@ Item {
                 maximumLineCount: 2
                 elide: Text.ElideRight
                 visible: root.parsedNotif.message !== ""
-            }
-
-            OsdProgressBar {
-                id: osdBar
-
-                Layout.fillWidth: true
-                notifData: root.notifData
             }
 
         }

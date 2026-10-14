@@ -36,6 +36,22 @@ ShellRoot {
         target: "widgets"
     }
 
+    IpcHandler {
+        function showVolume(volume: string, isMuted: string) {
+            OsdService.displayVolume(volume, isMuted);
+        }
+
+        function showMic(isMuted: string) {
+            OsdService.displayMic(isMuted);
+        }
+
+        function showBrightness(percent: string) {
+            OsdService.displayBrightness(percent);
+        }
+
+        target: "osd"
+    }
+
     NotificationService {
         id: globalNotificationService
     }
