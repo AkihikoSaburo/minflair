@@ -49,6 +49,11 @@ ShellRoot {
             OsdService.displayBrightness(percent);
         }
 
+        function showMessage(title: string, value: string, icon: string) {
+            let active = (value === "ON" || value === "Enabled" || (value !== "OFF" && value !== "Disabled" && value !== "DESACTIVADO"));
+            OsdService.displayMessage(title, value, icon, active);
+        }
+
         target: "osd"
     }
 

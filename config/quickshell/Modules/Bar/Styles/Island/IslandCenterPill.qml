@@ -18,7 +18,16 @@ IslandBackground {
     property real notifProgress: (hasActiveNotifications && !isRemovingNotif) ? 1 : 0
     readonly property bool hasActiveOsd: OsdService.isOpen && !hasActiveNotifications && openProgress === 0
     property real osdProgress: hasActiveOsd ? 1 : 0
-    readonly property real osdW: 260
+    readonly property real dynamicOsdW: {
+        if (OsdService.showProgress)
+            return 260;
+
+        if (discreteRow && discreteRow.implicitWidth > 0)
+            return Math.round(discreteRow.implicitWidth + (Constants.sizeSm + 4) * 2);
+
+        return 175;
+    }
+    property real osdW: dynamicOsdW
     readonly property bool isHovered: centerHover.hovered && !islandBar.isOpen && openProgress === 0 && !hasActiveNotifications && !hasActiveOsd
     readonly property bool isTranslated: isHovered || isTarget || openProgress > 0 || (hasActiveNotifications && notifProgress > 0) || (hasActiveOsd && osdProgress > 0)
     readonly property real notifW: notifLayer.notifW
@@ -98,9 +107,11 @@ IslandBackground {
         opacity: Math.min(1, Math.max(0, (root.osdProgress - 0.15) / 0.85))
         visible: opacity > 0.001
 
+        // Mode 1: Slider for Volume, Mic, Brightness
         RowLayout {
             anchors.fill: parent
             spacing: Constants.sizeXs
+            visible: OsdService.showProgress
 
             SvgIcon {
                 Layout.alignment: Qt.AlignVCenter
@@ -141,6 +152,54 @@ IslandBackground {
                 customSize: Constants.sizeXs + 1
                 font.weight: Font.DemiBold
                 color: OsdService.isMuted ? Theme.muted : Theme.fg
+            }
+
+        }
+
+        // Mode 2: Clean centered badge for Caps Lock, Touchpad, Keyboard
+        RowLayout {
+            id: discreteRow
+
+            anchors.centerIn: parent
+            spacing: Constants.sizeSm
+            visible: !OsdService.showProgress
+
+            SvgIcon {
+                Layout.alignment: Qt.AlignVCenter
+                icon: OsdService.icon
+                iconColor: OsdService.isMuted ? Theme.muted : Theme.accent
+                flat: true
+                iconSize: Constants.sizeSm + 2
+            }
+
+            ThemedText {
+                Layout.alignment: Qt.AlignVCenter
+                text: OsdService.title
+                customSize: Constants.sizeXs + 1
+                font.weight: Font.Medium
+                color: OsdService.isMuted ? Theme.muted : Theme.fg
+            }
+
+            Rectangle {
+                Layout.alignment: Qt.AlignVCenter
+                height: Constants.sizeLg + 2
+                radius: height / 2
+                color: Theme.bgSecondary
+                border.width: 1
+                border.color: OsdService.isMuted ? Theme.border : Theme.accent
+                implicitWidth: badgeLabel.implicitWidth + Constants.sizeSm
+                implicitHeight: height
+
+                ThemedText {
+                    id: badgeLabel
+
+                    anchors.centerIn: parent
+                    text: OsdService.valueText
+                    customSize: Constants.sizeXs
+                    font.weight: Font.Bold
+                    color: OsdService.isMuted ? Theme.muted : Theme.accent
+                }
+
             }
 
         }
@@ -281,6 +340,16 @@ IslandBackground {
         NumberAnimation {
             duration: root.hasActiveOsd ? Constants.animFast : Constants.animNormal
             easing.type: Easing.OutCubic
+        }
+
+    }
+
+    Behavior on osdW {
+        enabled: HyprlandService.enableAnimations
+
+        NumberAnimation {
+            duration: Constants.animFast
+            easing.type: Easing.OutQuint
         }
 
     }

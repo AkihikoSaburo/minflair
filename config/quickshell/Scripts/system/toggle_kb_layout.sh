@@ -29,4 +29,4 @@ NEW_LAYOUT="${LAYOUTS[$NEXT_IDX]}"
 
 # Apply
 hyprctl eval "hl.config({input = {kb_layout = '$NEW_LAYOUT'}})" 2>/dev/null || true
-notify-send -r 701 "Keyboard Layout" "Switched to $NEW_LAYOUT" 2>/dev/null || true
+qs ipc call osd showMessage "Keyboard" "${NEW_LAYOUT^^}" "keyboard" 2>/dev/null || true

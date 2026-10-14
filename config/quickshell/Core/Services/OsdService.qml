@@ -15,6 +15,7 @@ Item {
     property string icon: "volume"
     property real level: 0
     property bool isMuted: false
+    property bool showProgress: true
     property bool _ready: false
 
     function trigger(title, valText, level, icon, isMuted) {
@@ -23,8 +24,26 @@ Item {
         osdService.level = Math.max(0, Math.min(1, level));
         osdService.icon = icon;
         osdService.isMuted = isMuted;
+        osdService.showProgress = true;
         osdService.isOpen = true;
         hideTimer.restart();
+    }
+
+    function displayMessage(title, valText, icon, isAccent) {
+        osdService.title = title;
+        osdService.valueText = valText;
+        osdService.icon = icon || "info";
+        osdService.showProgress = false;
+        osdService.isMuted = (isAccent === false);
+        osdService.isOpen = true;
+        hideTimer.restart();
+    }
+
+    function displayToggle(title, valText, icon, isActive) {
+        let active = (isActive === true || isActive === "true" || isActive === "1" || valText === "ON" || valText === "Enabled");
+        let level = active ? 1 : 0;
+        let isMuted = !active;
+        osdService.trigger(title, valText, level, icon, isMuted);
     }
 
     function displayVolume(volume, isMuted) {

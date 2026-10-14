@@ -54,6 +54,24 @@ hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("$HOME/.config/quickshell/Scripts
 -- # Restart Quickshell
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("killall qs; qs"))
 
+-- # Caps Lock / Num Lock OSD
+hl.bind(
+	"Caps_Lock",
+	hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/keyboard_lock.sh caps"),
+	{ non_consuming = true, locked = true }
+)
+hl.bind(
+	"Num_Lock",
+	hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/keyboard_lock.sh num"),
+	{ non_consuming = true, locked = true }
+)
+
+-- # Toggle Touchpad
+hl.bind("XF86TouchpadToggle", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/touchpad.sh toggle"), { locked = true })
+hl.bind("XF86TouchpadOn", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/touchpad.sh on"), { locked = true })
+hl.bind("XF86TouchpadOff", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/touchpad.sh off"), { locked = true })
+hl.bind(mainMod .. " + CTRL + T", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/touchpad.sh toggle"), { locked = true })
+
 -- ## Volume
 
 -- # Raise Volume
