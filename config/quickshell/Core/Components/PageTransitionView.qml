@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Core
+import qs.Core.Services
 
 Rectangle {
     id: root
@@ -28,6 +29,11 @@ Rectangle {
         if (activeIndex === lastIndex)
             return ;
 
+        if (!HyprlandService.enableAnimations || (root.Window.window && !root.Window.window.visible)) {
+            root.lastIndex = root.activeIndex;
+            root.contentNeedsUpdate(root.activeIndex);
+            return ;
+        }
         let dir = 1;
         if (order && order.length > 0) {
             let prevPos = order.indexOf(lastIndex);

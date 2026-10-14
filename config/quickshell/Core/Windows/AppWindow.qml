@@ -55,6 +55,7 @@ FloatingWindow {
         anchors.fill: parent
         anchors.margins: root.contentPadding
         spacing: root.contentPadding > 0 ? Constants.sizeLg : 0
+        opacity: root.isOpen ? 1 : 0
 
         ColumnLayout {
             id: innerLayout
@@ -62,6 +63,14 @@ FloatingWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: root.contentPadding > 0 ? Constants.sizeLg : 0
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: HyprlandService.enableAnimations ? Constants.animFast : 0
+                easing.type: Easing.OutQuad
+            }
+
         }
 
     }

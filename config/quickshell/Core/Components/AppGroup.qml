@@ -58,6 +58,7 @@ Card {
         Item {
             Layout.fillWidth: true
             implicitHeight: contentLayout.implicitHeight
+            clip: true
 
             ColumnLayout {
                 id: contentLayout
@@ -75,7 +76,7 @@ Card {
                     width: parent.width
                     y: targetChild ? targetChild.y + targetChild.height + ((Constants.size2Xl - 1) / 2) : 0
                     visible: {
-                        if (!root.showDividers)
+                        if (!root.showDividers || contentLayout.implicitHeight <= 0)
                             return false;
 
                         if (!targetChild || !targetChild.visible || ('delegate' in targetChild && 'model' in targetChild))
